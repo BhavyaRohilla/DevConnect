@@ -1,0 +1,19 @@
+{
+  "name": "devmatch",
+  "version": "1.0.0",
+  "description": "tinder foe devs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon src/app.js",
+    "start": "node src/app.js"
+  },
+  "keywords": [
+    "nodejs"
+  ],
+  "author": "Bhavya Rohilla",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}
