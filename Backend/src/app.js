@@ -6,12 +6,17 @@ const User = require("./models/user");
 const app = express();
 const bcrypt = require("bcrypt");
 const { validateSignUpData } = require("./utils/validation");
+const cookieParser = require("cookie-parser");
+const jwt = require("jsonwebtoken");
+const { userAuth } = require("./middlewares/auth");
 
 // Global Middlewares
 app.use(express.json()); // Parse JSON request bodies
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded data
 app.use(helmet()); // Security headers
 app.use(cors()); // Enable CORS
+app.use(cookieParser()); // Parse Cookies
+
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev")); // Logging only in dev
 }
@@ -65,6 +70,15 @@ app.post("/signup", async (req, res) => {
   }
 });
 
+app.get("/profile", userAuth, async (req, res) => {
+  try {
+    const user = req.user;
+    res.send(user);
+  } catch (err) {
+    res.status(400).send("ERROR: " + err.message);
+  }
+});
+
 app.post("/login", async (req, res) => {
   try {
     const { emailId, password } = req.body;
@@ -73,9 +87,14 @@ app.post("/login", async (req, res) => {
     if (!user) {
       throw new Error("Invalid credentials");
     }
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    const isPasswordValid = await user.validatePassword(password);
 
     if (isPasswordValid) {
+      // Create a JWT Token
+      const token = await user.getJWT();
+
+      // Add the token to cookie and send the response back to the user
+      res.cookie("token", token);
       res.send("Login successfull");
     } else {
       throw new Error("Invalid credentials");
@@ -87,39 +106,6 @@ app.post("/login", async (req, res) => {
       message: "Error saving the user",
       error: err.message,
     });
-  }
-});
-
-app.get("/feed", async (req, res) => {
-  try {
-    const user = await User.find({});
-    res.send(user);
-  } catch (err) {
-    res.status(400).send("Something went wrong");
-  }
-});
-
-app.get("/user", async (req, res) => {
-  const userEmail = req.body.emailID;
-  try {
-    const user = await User.findOne({ emailID: userEmail });
-    if (!user) return res.status(404).send("User not found");
-    res.json(user);
-  } catch (err) {
-    res.status(400).send("Something wen wrong");
-  }
-});
-
-app.delete("/user", async (req, res) => {
-  const userId = req.body.userId;
-  try {
-    const user = await User.findByIdAndDelete(userId);
-    if (!user) {
-      return res.status(404).send("User not found");
-    }
-    return res.status(200).send("User deleted successfully");
-  } catch (err) {
-    res.status(400).send("Something went wrong");
   }
 });
 
