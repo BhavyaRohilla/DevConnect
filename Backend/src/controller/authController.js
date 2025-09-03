@@ -83,3 +83,26 @@ exports.login = async (req, res) => {
     });
   }
 };
+
+exports.logout = async (req, res) => {
+  try {
+    res.cookie("token", "", {
+      httpOnly: true, // security: cookie accessible only by server
+      expires: new Date(Date.now()), // expire immediately
+      secure: process.env.NODE_ENV === "production", // https only in production
+      sameSite: "strict", // CSRF protection
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Logout successful",
+    });
+  } catch (err) {
+    console.error("Logout error:", err.message);
+    return res.status(500).json({
+      success: false,
+      message: "Error during logout",
+      error: err.message,
+    });
+  }
+};
