@@ -6,7 +6,7 @@ const app = express();
 const cookieParser = require("cookie-parser");
 const authRouter = require("./routes/authRoutes");
 const profileRouter = require("./routes/profileRoutes");
-
+const requestRouter = require("./routes/requestRoutes");
 // Global Middlewares
 app.use(express.json()); // Parse JSON request bodies
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded data
@@ -20,5 +20,6 @@ if (process.env.NODE_ENV === "development") {
 
 app.use("/", authRouter);
 app.use("/", profileRouter);
+app.use("/", requestRouter);
 
 module.exports = app;
