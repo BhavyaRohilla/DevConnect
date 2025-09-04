@@ -62,3 +62,51 @@ exports.sendConnectionRequest = async (req, res) => {
     });
   }
 };
+
+exports.reviewRequest = async (req, res) => {
+  try {
+    const loggedInUser = req.user;
+    const { status, requestId } = req.params;
+
+    // ✅ Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(requestId)) {
+      return res.status(400).json({ message: "Invalid requestId format" });
+    }
+
+    // ✅ Allowed status check
+    const allowedStatus = ["accepted", "rejected"];
+    if (!allowedStatus.includes(status)) {
+      return res.status(400).json({ message: "Status not allowed" });
+    }
+
+    // ✅ Find request which is still in "interested" state
+    const connectionRequest = await ConnectionRequest.findOne({
+      _id: requestId,
+      toUserId: loggedInUser._id,
+      status: "interested", // fixed typo
+    });
+
+    if (!connectionRequest) {
+      return res
+        .status(404)
+        .json({ message: "Connection request not found or already reviewed" });
+    }
+
+    // ✅ Update status
+    connectionRequest.status = status;
+    const data = await connectionRequest.save();
+
+    res.json({
+      success: true,
+      message: `Connection request ${status}`,
+      data,
+    });
+  } catch (err) {
+    console.error("Error in reviewRequest:", err.message);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to review connection request",
+      error: err.message,
+    });
+  }
+};
