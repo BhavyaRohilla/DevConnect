@@ -1,4 +1,4 @@
-# DevConnect Backend
+# DevTinder Backend
 
 ## Approach to Code Explanation
 
